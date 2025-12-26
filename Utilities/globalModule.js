@@ -1,5 +1,4 @@
 const logger = require("./logger");
-const firebase = require('./firebase');
 var applicationkey = process.env.APPLICATION_KEY
 
 var mysql = require('mysql');

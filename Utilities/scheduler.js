@@ -1,11 +1,5 @@
 var scheduler = require('node-schedule');
 const mm = require('../Utilities/globalModule');
-const db = require('../Utilities/globalModule');
-const logger = require("../Utilities/logger");
-const async = require('async');
-const axios = require('axios');
-// const ah = require('../Utilities/Helper'); // Helper file not found, comment out if not needed
-
 var supportKey = "schedularLog";
 
 exports.schedulerJob = (req, res) => {
