@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 const formidable = require('formidable');
 const path = require('path');
 const fs = require('fs');
-const AWS = require('aws-sdk');
+// const AWS = require('aws-sdk');
 
 exports.checkAuthorization = (req, res, next) => {
     try {
