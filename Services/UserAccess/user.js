@@ -271,7 +271,44 @@ exports.update = (req, res) => {
         }
     }
 }
-/////Methods with transaction commit rollback 
+
+exports.login = (req, res) => {
+    try {
+        var username = req.body.username;
+        var password = req.body.password;
+        var supportKey = req.headers['supportkey'];
+        
+        if (!username || !password) {
+            res.send({
+                "code": 400,
+                "message": "Username or password parameter missing...",
+            });
+        } else {
+            mm.executeQuery(`SELECT * FROM ${viewUserMaster} WHERE (MOBILE_NUMBER ='${username}' or EMAIL_ID='${username}') and PASSWORD ='${password}' and IS_ACTIVE = 1`, supportKey, (error, results) => {
+                if (error) {
+                    console.log(error);
+                    res.send({
+                        "code": 400,
+                        "message": "Failed to get record...",
+                    });
+                } else {
+                    if (results.length > 0) {
+                        generateToken(results[0].ID, res, results[0]);
+                    } else {
+                        res.send({
+                            "code": 404,
+                            "message": "Incorrect username or password..."
+                        });
+                    }
+                }
+            });
+        }
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+///Methods with transaction commit rollback 
 
 exports.get1 = async (req, res) => {
     try {
@@ -443,71 +480,7 @@ exports.update1 = async (req, res) => {
     }
 }
 
-exports.login = (req, res) => {
-    try {
-        var username = req.body.username;
-        var password = req.body.password;
-        //var cloudId = req.body.cloudid ? req.body.cloudid : '';
-        var supportKey = req.headers['supportkey'];
-        if ((!username && username == '' && username == undefined) && (!password && password == '' && password == undefined)) {
-            res.send({
-                "code": 400,
-                "message": "username or password parameter missing...",
-            });
-        }
-        else {
-            //and DEVICE_ID = '${deviceId}
-            mm.executeQuery(`SELECT * FROM ${viewUserMaster}  WHERE  (MOBILE_NUMBER ='${username}' or EMAIL_ID='${username}') and PASSWORD ='${password}' and IS_ACTIVE = 1`, supportKey, (error, results1) => {
-                if (error) {
-                    console.log(error);
-                    // logger.error('APIK:' + req.headers['apikey'] + ' ' + supportKey + ' ' + req.method + " " + req.url + ' ' + JSON.stringify(error), req.headers['supportkey']);
-                    res.send({
-                        "code": 400,
-                        "message": "Failed to get record...",
-                    });
-                }
-                else {
-                    if (results1.length > 0) {
-                        mm.executeQueryData(`SELECT COUNTRY_ID,ID,YEAR_ID,STEP_NO,BOARD_ID FROM school_master WHERE  PRINCIPLE_ID = ? `, [results1[0]?.ID], supportKey, (error, resultsSchool) => {
-                            if (error) {
-                                console.log(error);
-                                // logger.error('APIK:' + req.headers['apikey'] + ' ' + supportKey + ' ' + req.method + " " + req.url + ' ' + JSON.stringify(error), req.headers['supportkey']);
-                                res.send({
-                                    "code": 400,
-                                    "message": "Failed to get record...",
-                                });
-                            }
-                            else {
-                                var userDetails = [{
-                                    USER_ID: results1[0].ID,
-                                    CLIENT_ID: results1[0].CLIENT_ID,
-                                    ROLE_ID: results1[0].ROLE_ID,
-                                    NAME: results1[0].NAME,
-                                    EMAIL_ID: results1[0].EMAIL_ID,
-                                    COUNTRY_ID: resultsSchool[0]?.COUNTRY_ID ? resultsSchool[0]?.COUNTRY_ID : '',
-                                    SCHOOL_ID: resultsSchool[0]?.ID ? resultsSchool[0]?.ID : '',
-                                    YEAR_ID: resultsSchool[0]?.YEAR_ID ? resultsSchool[0]?.YEAR_ID : '',
-                                    STEP_NO: resultsSchool[0]?.STEP_NO ? resultsSchool[0]?.STEP_NO : 0,
-                                    BOARD_ID: resultsSchool[0]?.BOARD_ID ? resultsSchool[0]?.BOARD_ID : ''
-                                }]
-                                generateToken(results1[0].ID, res, userDetails);
-                            }
-                        });
-                    }
-                    else {
-                        res.send({
-                            "code": 404,
-                            "message": "Incorrect username or password..."
-                        });
-                    }
-                }
-            });
-        }
-    } catch (error) {
-        console.log(error);
-        // logger.error('APIK:' + req.headers['apikey'] + ' ' + supportKey + ' ' + req.method + " " + req.url + ' ' + JSON.stringify(error), req.headers['supportkey']);
-    }
-}
+
 
 function generateToken(userId, res, resultsUser) {
     try {
